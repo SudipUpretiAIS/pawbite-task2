@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Order List{% endblock title %}
+{% block body %}
+<body>
+    <div class="container py-2">
+        <div class="row py-4 pb-0 pb-sm-4 align-items-center">
+            <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                <div class="main-logo">
+                    <a href="{{url_for('home')}}">
+                        <span class="brand"><span class="brand-mark"><i class="fa-solid fa-paw"></i></span><span>PawBite</span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container mt-4">
+        {% include 'flash_message.html' %}
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Invoice Details</h2>
+                <p>Invoice Number: {{ invoice_number }}</p>
+                <p>Customer Name: {{ user.username }}</p>
+                <p>Customer Email: {{ user.email }}</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>S.N.</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price per item</th>
+                            <th>Payment Status</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>${{ order.price / order.quantity }}</td>
+                            <td>{{ order.payment_status }}</td>
+                            <td>${{ order.price }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="5">Grand Total</td>
+                            <td>${{ orders | map(attribute='price') | sum }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="table table-sm">
+                    <tr> 
+                        <td colspan="5"> 
+                            <a target="_blank" href="{{ url_for('get_pdf', invoice_number=invoice_number) }}" class="btn btn-info">Get PDF</a>
+                        </td>
+                    </tr>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

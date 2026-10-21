@@ -1,0 +1,140 @@
+from flask import render_template, url_for, request, redirect, flash, session
+from shop import app, bcrypt, db, mail
+from .models import User
+from shop.products.models import Product, Category, Cart
+from flask_login import login_user, current_user, logout_user, login_required
+import random, base64, re
+from flask_mail import Message
+from datetime import datetime, timezone, timedelta
+from sqlalchemy import or_
+
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    categories = Category.query.all()
+    all_products = Product.query.all()
+    cart=[]
+    if current_user.is_authenticated:
+        cart = Cart.query.filter_by(user_id=current_user.id).all()
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        password = request.form['password']
+        re_password = request.form['repassword']
+        existing_user = User.query.filter_by(email=email).first()
+        if not username or len(username) > 50 or len(email) > 254 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', email):
+            flash('Enter a name and valid email address.')
+        elif len(password) < 8 or len(password.encode('utf-8')) > 72:
+            flash('Use a password of at least 8 characters.')
+        elif existing_user:
+            flash('Email already exists.')
+        elif password != re_password:
+            flash('Please enter the same password.')
+        else:
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            new_user = User(username=username, email=email, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Your account was registered successfully.')
+            return redirect(url_for('login'))
+    return render_template('home.html', all_products=all_products, categories=categories, cart=cart)
+
+
+@app.route("/login", methods=["GET","POST"])
+def login():
+    if request.method=='POST':
+        email = request.form["email"]
+        password = request.form["password"]
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if bcrypt.check_password_hash(user.password,password):
+                login_user(user)
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page and next_page.startswith('/') and not next_page.startswith('//') else redirect(url_for('home'))
+            else:
+            
+                flash('Login Unsuccessful. Please check email and password')
+        else:
+            flash('Register your account first')
+    return render_template("user/login.html")
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
+@app.route('/profile',methods=["GET", "POST"])
+@login_required
+def profile():
+    if request.method == 'POST':
+        current_user.username = request.form['username']
+        if 'pic' in request.files:
+            pic = request.files['pic']
+            if pic.filename != '':
+                img_data = pic.read()
+                encoded_img = base64.b64encode(img_data).decode('utf-8')
+                current_user.image_file = encoded_img
+        current_user.email = request.form["email"]
+        db.session.commit()
+        flash('Your account has been updated!')
+        return redirect(url_for('profile'))
+    return render_template('user/profile.html')
+
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgotpassword():
+    flash('Password recovery is not enabled in this assessment deployment. Contact the administrator.')
+    return redirect(url_for('login'))
+
+
+@app.route('/otp', methods=['GET', 'POST'])
+def otp():
+    return redirect(url_for('forgotpassword'))
+
+
+@app.route('/update_password', methods=['GET', 'POST'])
+def update_password():
+    return redirect(url_for('forgotpassword'))
+
+
+@app.route('/changepassword', methods=["GET","POST"])
+@login_required
+def changepassword():
+    if request.method == 'POST':
+        old_password = request.form['oldpassword']
+        new_password = request.form['newpassword']
+        re_password = request.form['repassword']
+        if bcrypt.check_password_hash(current_user.password,old_password):
+                if old_password != new_password:
+                    if new_password==re_password and 8 <= len(new_password) and len(new_password.encode('utf-8')) <= 72:
+                        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                        current_user.password=hashed_password
+                        db.session.commit()
+                        flash('Password changed successfully')
+                    else:
+                        flash('Password did not match')
+                else:
+                    flash('The password cannot be same')
+        else:
+            flash('wrong old password')
+        return redirect(url_for('changepassword'))
+    return render_template('user/changepassword.html')
+
+
+@app.route('/search', methods=['POST'])
+def search():
+    if request.method == "POST":
+        categories = Category.query.all()
+        search_query = request.form['search_query']
+        search_results = Product.query.filter(or_(Product.tag.like(f"%{search_query}%"), Product.name.like(f"%{search_query}%"))).all()
+        return render_template('user/search_product.html', search_query=search_query, search_results=search_results,categories=categories)
+    
+
+@app.route('/sort_by_category/<int:category_id>')
+def sortbycategory(category_id):
+    categories = Category.query.all()
+    category = Category.query.get_or_404(category_id)
+    search_results = Product.query.filter_by(category_id=category_id).all()
+    return render_template('user/view_by_category.html', category=category, search_results=search_results, categories=categories)

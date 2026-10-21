@@ -1,0 +1,31 @@
+{% extends 'base.html'%}
+<title>{% block title %} Admin_Home {% endblock title %}</title>
+<body>
+{% block body %}
+{% include 'admin/navbar.html'%}
+  <div class="container">
+    {% include 'flash_message.html'%}
+    <h2>All User</h2>
+    <table class="table table-sm">
+      <thead>
+        <th>S.N</th>
+        <th>User By Email</th>
+        <th>Delete</th>
+      </thead>
+      <tbody>
+      {% for user in all_users %}
+        <tr>
+          <td>{{loop.index}}</td>
+          <td>{{user.email}}</td>
+          {% if user.role == 'customer' %}
+            <td><a href="/delete_user/{{ user.id }}" class="btn btn-outline-danger">Delete</a></td>
+            {% else %}
+            <td><button class="btn btn-outline-success" disabled>Admin</button></td>
+        {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock body %}
+</body>

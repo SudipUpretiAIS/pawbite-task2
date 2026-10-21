@@ -1,0 +1,11 @@
+<header class="site-header"><nav class="navbar navbar-expand-lg navbar-dark"><div class="container">
+<a class="navbar-brand brand" href="{{ url_for('home') }}"><span class="brand-mark"><i class="fa-solid fa-paw"></i></span><span>PawBite</span></a>
+<button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#mainNav"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="mainNav"><ul class="navbar-nav me-auto ms-lg-4">
+<li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">Dog Food</a><ul class="dropdown-menu">{% for category in categories|default([]) %}<li><a class="dropdown-item" href="{{ url_for('sortbycategory', category_id=category.id) }}">{{ category.name }}</a></li>{% endfor %}</ul></li>
+<li class="nav-item"><a class="nav-link" href="{{ url_for('filterproduct') }}">Shop</a></li>
+{% if current_user.is_authenticated %}<li class="nav-item"><a class="nav-link" href="{{ url_for('order') }}">My Orders</a></li>{% endif %}</ul>
+<form class="d-flex search-box me-lg-3 my-2 my-lg-0" action="{{ url_for('search') }}" method="post"><input name="search_query" class="form-control" placeholder="Search dog food..." required><button class="btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button></form>
+<div class="d-flex align-items-center gap-2">{% if current_user.is_authenticated %}{% if current_user.role == 'admin' %}<a class="btn btn-accent btn-sm" href="{{ url_for('admin_home') }}">Admin</a>{% endif %}<a class="icon-btn" href="{{ url_for('profile') }}" title="Profile"><i class="fa-regular fa-user"></i></a><a class="icon-btn position-relative" href="{{ url_for('view_cart') }}" title="Cart"><i class="fa-solid fa-cart-shopping"></i>{% if cart is defined %}<span class="cart-badge">{{ cart|length }}</span>{% endif %}</a><a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>{% else %}<a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Login</a>{% endif %}</div>
+</div></div></nav></header>

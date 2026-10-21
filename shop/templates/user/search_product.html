@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+<title>{% block title %}Search Product{% endblock title %}</title>
+    {%block body %}
+        {% include 'navbar.html' %}
+        <div class="container">
+            <div class="row">
+                        <h2>Search Results for "{{ search_query }}"</h2>
+                      {% for product in search_results %}
+                      {% include 'card/card.html' %}
+                    {% endfor %}
+        </div></div>
+    {% endblock body %} 
