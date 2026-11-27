@@ -1,5 +1,6 @@
 from flask_login import UserMixin
 from shop import db,app, login_manager
+from shop.encryption import EncryptedString
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -7,7 +8,7 @@ def load_user(user_id):
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(50), nullable=False)
+    username = db.Column(EncryptedString(), nullable=False)
     email = db.Column(db.String(254), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
     image_file = db.Column(db.Text, nullable=False, default = 'default.jpg')
