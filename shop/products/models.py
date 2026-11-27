@@ -17,7 +17,7 @@ class Product(db.Model):
     likes = db.relationship('Like', backref='product', lazy=True, cascade='all, delete-orphan')
     carts = db.relationship('Cart', backref=db.backref('product', lazy=True), cascade='all, delete-orphan', single_parent=True)
     orders = db.relationship('Order', back_populates='product', cascade='all, delete-orphan', single_parent=True)
-    ratings = db.relationship('Rating', backref='rated_product', lazy=True, cascade='all, delete-orphan')
+    ratings = db.relationship('Rating', back_populates='product', lazy=True, cascade='all, delete-orphan')
 
     def count_likes(self): 
         return len(self.likes)
@@ -68,7 +68,7 @@ class Rating(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
 
     user = db.relationship('User', backref='user_ratings')
-    product = db.relationship('Product', backref='product_ratings')
+    product = db.relationship('Product', back_populates='ratings')
 
 
 class InvoiceCounter(db.Model):
