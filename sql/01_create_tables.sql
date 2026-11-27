@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS invoice_counter (
 
 CREATE TABLE IF NOT EXISTS "user" (
 	id SERIAL NOT NULL, 
-	username VARCHAR(50) NOT NULL, 
+	username TEXT NOT NULL, 
 	email VARCHAR(254) NOT NULL, 
 	password VARCHAR(80) NOT NULL, 
 	image_file TEXT NOT NULL, 

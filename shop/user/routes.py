@@ -69,7 +69,14 @@ def logout():
 @login_required
 def profile():
     if request.method == 'POST':
-        current_user.username = request.form['username']
+        # Validate username before encryption
+        username = request.form.get('username', '').strip()
+
+        if not username or len(username) > 50:
+            flash('Username must contain between 1 and 50 characters.')
+            return redirect(url_for('profile'))
+
+        current_user.username = username
         if 'pic' in request.files:
             pic = request.files['pic']
             if pic.filename != '':
