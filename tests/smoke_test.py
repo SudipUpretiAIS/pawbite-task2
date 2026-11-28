@@ -1,7 +1,9 @@
+from cryptography.fernet import Fernet
 import os,sys,io
 os.environ['SECRET_KEY']='local-validation-secret-value-at-least-32-characters'
 os.environ['DATABASE_URL']='sqlite:///:memory:'
 os.environ['COOKIE_SECURE']='false'
+os.environ["DATA_ENCRYPTION_KEY"] = (Fernet.generate_key().decode())
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parents[1]))
 from shop import app,db,bcrypt
 from shop.user.models import User
